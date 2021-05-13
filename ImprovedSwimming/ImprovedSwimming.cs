@@ -5,11 +5,12 @@ using UnityEngine;
 
 namespace ImprovedSwimming
 {
-    [BepInPlugin("projjm.improvedswimming", "Improved Swimming", "1.0.0")]
+    [BepInPlugin("projjm.improvedswimming", "Improved Swimming", "1.1.0")]
     [BepInProcess("valheim.exe")]
     public class ImprovedSwimming : BaseUnityPlugin
     {
 
+		private static ConfigEntry<bool> disableAllExceptIdleRegen;
 		private static ConfigEntry<KeyCode> swimFasterKey;
 		private static ConfigEntry<float> swimFasterSpeedMultiplier;
 		private static ConfigEntry<float> swimFasterStaminaMultiplier;
@@ -33,6 +34,7 @@ namespace ImprovedSwimming
 		private readonly Harmony harmony = new Harmony("projjm.improvedswimming");
         void Awake()
         {
+			disableAllExceptIdleRegen = Config.Bind("General", "disableAllExceptIdleRegen", false, "Disable all features except from idle stamina regen");
 			swimFasterKey = Config.Bind("Fast Swim", "swimFasterKey", KeyCode.LeftShift, "The key to swim faster.");
 			swimFasterSpeedMultiplier = Config.Bind("Fast Swim", "swimFasterSpeedModifier", 2.0f, "Speed multiplier when swimming faster");
 			swimFasterStaminaMultiplier = Config.Bind("Fast Swim", "swimFasterStaminaModifier", 3f, "Stamina drain multiplier when swimming faster");
@@ -67,13 +69,39 @@ namespace ImprovedSwimming
 			{
 				Player player = __instance;
 				bool isLocalPlayer = player == Player.m_localPlayer;
+				float skillFactor = player.m_skills.GetSkillFactor(Skills.SkillType.Swim);
+
+				if (disableAllExceptIdleRegen.Value)
+				{
+					if (targetVel.magnitude <= 0.1f)
+					{
+						float maxStamina = player.GetMaxStamina();
+						float num2 = (player.m_staminaRegen + (1f - player.m_stamina / maxStamina) * player.m_staminaRegen * player.m_staminaRegenTimeMultiplier);
+						float staminaMultiplier = 1f;
+
+						player.m_seman.ModifyStaminaRegen(ref staminaMultiplier);
+						num2 *= staminaMultiplier;
+						player.m_staminaRegenTimer -= dt;
+
+						float swimIdleMultiplier = Mathf.Lerp(swimIdleStaminaRegenMultiplierMin.Value, swimIdleStaminaRegenMultiplierMax.Value, skillFactor);
+						num2 *= swimIdleMultiplier;
+
+						if (player.m_stamina < maxStamina && player.m_staminaRegenTimer <= 0f)
+						{
+							player.m_stamina = Mathf.Min(maxStamina, player.m_stamina + num2 * dt);
+						}
+
+						player.m_nview.GetZDO().Set("stamina", player.m_stamina);
+					}
+					return true;
+				}
+
 				if (isLocalPlayer)
 				{
 					player.m_swimStaminaDrainMinSkill = swimStaminaDrainMinSkill.Value;
 					player.m_swimStaminaDrainMaxSkill = swimStaminaDrainMaxSkill.Value;
 				}
 
-				float skillFactor = player.m_skills.GetSkillFactor(Skills.SkillType.Swim);
 				//base.OnSwiming(targetVel, dt);
 				if (targetVel.magnitude > 0.1f)
 				{
@@ -152,6 +180,9 @@ namespace ImprovedSwimming
 		{
 			public static bool Prefix(float dt, ref Character __instance)
 			{
+				if (disableAllExceptIdleRegen.Value)
+					return true;
+
 				Character character = __instance;
 				bool flag = character.IsOnGround();
 
