@@ -1,4 +1,4 @@
-# Valheim-Improved-Swimming
+# Valheim - Improved Swimming
 ### Features
 * Swim faster by holding left shift (by default) - Uses more stamina overall.
 * Swim Speed scales with Swimming level.
