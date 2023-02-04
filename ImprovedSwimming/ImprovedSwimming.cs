@@ -270,7 +270,7 @@ namespace ImprovedSwimming
 				{
 					float speed2 = character.m_swimTurnSpeed;
 					character.m_seman.ApplyStatusEffectSpeedMods(ref speed2);
-					target2 = character.UpdateRotation(speed2, dt);
+					target2 = character.UpdateRotation(speed2, dt, true);
 				}
 
 				character.m_body.angularVelocity = Vector3.zero;
