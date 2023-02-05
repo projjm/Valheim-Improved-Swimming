@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace ImprovedSwimming
 {
-    [BepInPlugin("projjm.improvedswimming", "Improved Swimming", "1.1.0")]
+    [BepInPlugin("projjm.improvedswimming", "Improved Swimming", "1.1.1")]
     [BepInProcess("valheim.exe")]
     public class ImprovedSwimming : BaseUnityPlugin
     {
