@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace ImprovedSwimming
 {
-    [BepInPlugin("projjm.improvedswimming", "Improved Swimming", "1.1.0")]
+    [BepInPlugin("projjm.improvedswimming", "Improved Swimming", "1.1.1")]
     [BepInProcess("valheim.exe")]
     public class ImprovedSwimming : BaseUnityPlugin
     {
@@ -270,7 +270,7 @@ namespace ImprovedSwimming
 				{
 					float speed2 = character.m_swimTurnSpeed;
 					character.m_seman.ApplyStatusEffectSpeedMods(ref speed2);
-					target2 = character.UpdateRotation(speed2, dt);
+					target2 = character.UpdateRotation(speed2, dt, true);
 				}
 
 				character.m_body.angularVelocity = Vector3.zero;
